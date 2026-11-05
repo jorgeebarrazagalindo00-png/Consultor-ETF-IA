@@ -15,18 +15,21 @@ st.set_page_config(
 # Paleta (validada: orden categorico fijo, pares CVD-seguros; ver skill de
 # dataviz). No se usan colores sueltos en ningun otro lugar del archivo.
 # ---------------------------------------------------------------------------
-C_PRIMARY = "#2a78d6"     # slot 1 — serie principal / estrategia
-C_SECONDARY = "#eb6834"   # slot 2 — serie de referencia / benchmark
-C_TERTIARY = "#1baf7a"    # slot 3 — tercera serie
-C_MUTED = "#898781"       # lineas de referencia, ejes
-C_GRID = "#e1e0d9"
-C_SURFACE = "#ffffff"
-C_TEXT = "#0b0b0b"
-C_TEXT_SECONDARY = "#52514e"
+# Paleta oscura tipo "terminal financiero" — fondo navy oscuro, acentos
+# en menta/naranja/azul (triada CVD-segura), estados BUY/SELL/HOLD en
+# verde/rojo/ambar para que las tarjetas se lean como mapa de calor.
+C_PRIMARY = "#1fc8a3"     # slot 1 — serie principal / estrategia (menta)
+C_SECONDARY = "#f0813f"   # slot 2 — serie de referencia / benchmark (naranja)
+C_TERTIARY = "#5b8def"    # slot 3 — tercera serie (azul)
+C_MUTED = "#6b7280"       # lineas de referencia, ejes
+C_GRID = "#232935"
+C_SURFACE = "#131722"
+C_TEXT = "#e8eaed"
+C_TEXT_SECONDARY = "#9aa3b2"
 
-C_GOOD = "#0ca30c"        # BUY / vela alcista
-C_CRITICAL = "#d03b3b"    # SELL / vela bajista
-C_NEUTRAL = "#6b6a65"     # HOLD (no es "problema", es neutral)
+C_GOOD = "#22c55e"        # BUY / vela alcista
+C_CRITICAL = "#ef4444"    # SELL / vela bajista
+C_NEUTRAL = "#eab308"     # HOLD (caution, no "problema" — ambar, no gris)
 
 DATA_DIR = "data"
 ETFS_DISPONIBLES = ["SPY", "QQQ", "IWM", "GLD", "TLT"]
@@ -78,6 +81,7 @@ def _layout_grafica(fig, titulo, y_label, rangeslider=False):
         hovermode="x unified",
         legend=dict(orientation="h", y=1.14, font=dict(color=C_TEXT_SECONDARY)),
         margin=dict(t=55, b=40, l=40, r=20), height=360,
+        dragmode="pan",  # clic izquierdo = mover el grafico; rueda = zoom
         plot_bgcolor=C_SURFACE, paper_bgcolor=C_SURFACE,
         font=dict(family="system-ui, -apple-system, 'Segoe UI', sans-serif", color=C_TEXT_SECONDARY),
         xaxis=dict(gridcolor=C_GRID, zeroline=False, linecolor=C_GRID, rangeslider=dict(visible=rangeslider)),
@@ -132,10 +136,23 @@ def explicacion(texto):
 
 
 def _pastilla(color, texto):
+    """Pastilla llena (fondo tintado) — para la accion BUY/SELL/HOLD grande."""
     return (
-        f'<span style="background:{color}1a;color:{color};'
-        f'border:1px solid {color}66;padding:3px 12px;border-radius:14px;'
+        f'<span style="background:{color}2b;color:{color};'
+        f'border:1px solid {color}80;padding:3px 12px;border-radius:14px;'
         f'font-weight:600;font-size:0.82rem;white-space:nowrap;margin-right:8px;">{texto}</span>'
+    )
+
+
+def _chip_estado(color, texto):
+    """Chip con punto de color — para el estado del sistema (datos/LLM)."""
+    return (
+        f'<span style="display:inline-flex;align-items:center;gap:6px;'
+        f'background:{C_SURFACE};border:1px solid {C_GRID};'
+        f'padding:4px 12px;border-radius:14px;font-size:0.78rem;'
+        f'color:{C_TEXT_SECONDARY};white-space:nowrap;margin-right:8px;">'
+        f'<span style="width:7px;height:7px;border-radius:50%;background:{color};'
+        f'display:inline-block;flex-shrink:0;"></span>{texto}</span>'
     )
 
 
@@ -147,6 +164,26 @@ def badge_accion(accion):
     }
     color, texto = mapa.get(accion, (C_NEUTRAL, str(accion)))
     return _pastilla(color, texto)
+
+
+def tarjeta_etf(ticker, accion, confianza, riesgo):
+    """Tarjeta tipo mapa de calor: fondo tintado segun BUY/SELL/HOLD, para
+    que las 5 tarjetas del Home se lean de un vistazo (como el 'Tablero de
+    Mercado' de referencia)."""
+    mapa = {
+        "BUY": (C_GOOD, "▲ BUY"),
+        "SELL": (C_CRITICAL, "▼ SELL"),
+        "HOLD": (C_NEUTRAL, "● HOLD"),
+    }
+    color, texto_accion = mapa.get(accion, (C_NEUTRAL, str(accion)))
+    return (
+        f'<div style="background:{color}20;border:1px solid {color}70;'
+        f'border-radius:12px;padding:18px 12px;text-align:center;">'
+        f'<div style="font-weight:700;font-size:1.05rem;color:{C_TEXT};">{ticker}</div>'
+        f'<div style="margin:10px 0;font-weight:700;font-size:0.92rem;color:{color};">{texto_accion}</div>'
+        f'<div style="font-size:0.78rem;color:{C_TEXT_SECONDARY};">'
+        f'confianza {confianza:.0f}% · riesgo {riesgo}</div></div>'
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -200,18 +237,18 @@ try:
     _fecha_senal_dt = pd.to_datetime(_ultima_fecha_senal).date()
     _dias = (date.today() - _fecha_senal_dt).days
     _color = C_GOOD if _dias <= 5 else C_CRITICAL
-    _chips.append(_pastilla(_color, f"📊 Datos y señal: {_fecha_senal_dt.isoformat()}"))
+    _chips.append(_chip_estado(_color, f"Datos y señal: {_fecha_senal_dt.isoformat()}"))
 except (TypeError, ValueError):
-    _chips.append(_pastilla(C_MUTED, "📊 Datos: no disponible"))
+    _chips.append(_chip_estado(C_MUTED, "Datos: no disponible"))
 
 try:
     _log_llm = pd.read_csv(os.path.join(DATA_DIR, "log_recomendaciones_LLM.csv"))
     _ultimo_llm = pd.to_datetime(_log_llm["timestamp"]).max()
     _dias_llm = (pd.Timestamp.now() - _ultimo_llm).days
     _color_llm = C_GOOD if _dias_llm <= 5 else C_CRITICAL
-    _chips.append(_pastilla(_color_llm, f"🤖 Recomendación LLM: {_ultimo_llm.strftime('%Y-%m-%d')}"))
+    _chips.append(_chip_estado(_color_llm, f"Recomendación LLM: {_ultimo_llm.strftime('%Y-%m-%d')}"))
 except (FileNotFoundError, KeyError, ValueError):
-    _chips.append(_pastilla(C_MUTED, "🤖 LLM: no disponible"))
+    _chips.append(_chip_estado(C_MUTED, "LLM: no disponible"))
 
 _badge_actions = (
     f'<img src="https://github.com/{GITHUB_REPO}/actions/workflows/actualizar_datos.yml/badge.svg" '
@@ -248,16 +285,13 @@ with tab_home:
         orden = senal_resumen.set_index("Ticker").loc[ETFS_DISPONIBLES].reset_index()
         for col, (_, fila) in zip(cols, orden.iterrows()):
             with col:
-                with st.container(border=True):
-                    st.markdown(
-                        f'<div style="text-align:center;">'
-                        f'<div style="font-weight:700;font-size:1.05rem;color:{C_TEXT};">{fila["Ticker"]}</div>'
-                        f'<div style="margin:8px 0;">{badge_accion(fila["Señal"])}</div>'
-                        f'<div style="font-size:0.78rem;color:{C_TEXT_SECONDARY};">'
-                        f'confianza {fila["Confianza_modelo_%"]:.0f}% · riesgo {fila["Nivel_de_riesgo"]}'
-                        f'</div></div>',
-                        unsafe_allow_html=True,
-                    )
+                st.markdown(
+                    tarjeta_etf(
+                        fila["Ticker"], fila["Señal"],
+                        fila["Confianza_modelo_%"], fila["Nivel_de_riesgo"],
+                    ),
+                    unsafe_allow_html=True,
+                )
         st.caption(
             "Tip: el ETF que elijas en la barra lateral se usa en las pestañas "
             "Descriptivo y Prescriptivo."
