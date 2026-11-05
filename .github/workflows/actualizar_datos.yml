@@ -1,0 +1,58 @@
+name: Actualizar datos ETF
+
+# Corre solo, una vez al día (sin que nadie tenga que entrar a ningun sitio),
+# y tambien se puede disparar a mano desde la pestaña "Actions" de GitHub
+# (solo el equipo, con acceso al repositorio, puede hacer eso - el tablero
+# publico en Streamlit no tiene ningun boton que dispare esto).
+on:
+  schedule:
+    - cron: "0 12 * * *"   # todos los dias a las 12:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependencias del pipeline
+        run: pip install -r requirements-pipeline.txt
+
+      - name: "Fase 3 - Recoleccion de datos (yfinance + Alpha Vantage)"
+        env:
+          ALPHA_VANTAGE_API_KEY: ${{ secrets.ALPHA_VANTAGE_API_KEY }}
+        run: python fase3_recoleccion_datos_ETF.py
+
+      - name: "Fase 4 - Procesamiento y reentrenamiento del modelo ML"
+        run: python fase4_procesamiento_ia_ETF.py
+
+      - name: "Fase 5 - Backtesting"
+        run: python fase5_backtesting_ETF.py
+
+      - name: "Fase 6 - Metricas finales"
+        run: python fase6_metricas_finales_ETF.py
+
+      - name: "Fase 8 - Senal actual"
+        run: python fase8_senal_actual_ETF.py
+
+      - name: "Fase 9 - Recomendacion prescriptiva (Gemini)"
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python fase9_llm_prescriptivo_ETF.py
+
+      - name: Guardar los datos actualizados en el repositorio
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          git diff --quiet --cached || git commit -m "Actualizacion automatica de datos ($(date -u +'%Y-%m-%d %H:%M UTC'))"
+          git push

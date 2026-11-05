@@ -1,0 +1,11 @@
+pandas
+numpy
+yfinance
+requests
+scikit-learn
+xgboost
+vaderSentiment
+joblib
+matplotlib
+pydantic
+google-genai

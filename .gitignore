@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Nunca subir claves reales ni entornos locales
+.env
+.streamlit/secrets.toml
+
+# Archivo de estado de limite diario de llamadas al LLM (se regenera solo)
+data/limite_llamadas_LLM_estado.json
+
+# Sobrante del plan original (Power BI); no se usa, el tablero real es Streamlit
+Dashboard_ETF.pbix
