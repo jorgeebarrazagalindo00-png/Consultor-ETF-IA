@@ -1,6 +1,6 @@
 Ticker,Date,Señal,Confianza_modelo_%,Prob_BUY_%,Prob_HOLD_%,Prob_SELL_%,Nivel_de_riesgo,Justificacion
-SPY,2026-11-11,SELL,59.4,18.9,21.7,59.4,Alto,"RSI_14=48.2, MACD=-4.815 vs señal=-3.883, Sentiment=0.00, volatilidad en percentil 89% de su propio historial."
-IWM,2026-11-11,BUY,39.9,39.9,32.1,28.0,Alto,"RSI_14=56.7, MACD=-0.067 vs señal=-0.795, Sentiment=0.00, volatilidad en percentil 77% de su propio historial."
-GLD,2026-11-11,SELL,40.9,30.4,28.7,40.9,Alto,"RSI_14=47.5, MACD=-3.629 vs señal=-4.547, Sentiment=0.00, volatilidad en percentil 91% de su propio historial."
-QQQ,2026-11-11,SELL,68.2,20.3,11.6,68.2,Alto,"RSI_14=46.0, MACD=-14.502 vs señal=-12.619, Sentiment=0.00, volatilidad en percentil 94% de su propio historial."
-TLT,2026-11-11,HOLD,63.1,23.8,63.1,13.1,Medio,"RSI_14=45.3, MACD=0.552 vs señal=0.572, Sentiment=0.00, volatilidad en percentil 35% de su propio historial."
+QQQ,2026-11-12,SELL,74.5,16.0,9.5,74.5,Alto,"RSI_14=45.4, MACD=-13.309 vs señal=-12.757, Sentiment=0.00, volatilidad en percentil 94% de su propio historial."
+IWM,2026-11-12,BUY,37.4,37.4,29.5,33.1,Alto,"RSI_14=52.6, MACD=-0.137 vs señal=-0.663, Sentiment=0.00, volatilidad en percentil 79% de su propio historial."
+GLD,2026-11-12,SELL,44.0,28.3,27.6,44.0,Alto,"RSI_14=43.0, MACD=-4.593 vs señal=-4.556, Sentiment=0.00, volatilidad en percentil 92% de su propio historial."
+SPY,2026-11-12,SELL,67.1,14.1,18.8,67.1,Alto,"RSI_14=48.8, MACD=-4.287 vs señal=-3.963, Sentiment=0.00, volatilidad en percentil 88% de su propio historial."
+TLT,2026-11-12,HOLD,65.3,20.6,65.3,14.1,Medio,"RSI_14=39.2, MACD=0.394 vs señal=0.537, Sentiment=0.00, volatilidad en percentil 39% de su propio historial."
